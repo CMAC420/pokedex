@@ -1,3 +1,3 @@
-module github.com/CMAC420/pokedex
+module pokedex
 
 go 1.25.4
