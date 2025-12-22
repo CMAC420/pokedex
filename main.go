@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"pokedex/pokeapi"
 	"strings"
@@ -33,6 +34,7 @@ func commandHelp(cfg *config, args []string) error {
 	fmt.Println("map: Displays 20 locations")
 	fmt.Println("mapb: Displays last 20 locations")
 	fmt.Println("explore <area>: Display Pokemon in area")
+	fmt.Println("catch: Catch a Pokemon with a pokeball")
 	fmt.Println("exit: Exit the Pokedex")
 	return nil
 }
@@ -92,6 +94,32 @@ func commandExplore(cfg *config, args []string) error {
 	return nil
 }
 
+func commandCatch(cfg *config, args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("Please provide a pokemon name")
+	}
+
+	name := args[0]
+
+	fmt.Printf("Throwing a Pokeball at %s...", name)
+
+	pokemon, err := pokeapi.GetPokemon(name)
+	if err != nil {
+		return err
+	}
+
+	roll := rand.Intn(pokemon.BaseExperience + 1)
+
+	if roll < 50 {
+		fmt.Printf("%s was caught!\n", pokemon.Name)
+		pokedex[pokemon.Name] = pokemon
+	} else {
+		fmt.Printf("%s escaped!\n", pokemon.Name)
+	}
+
+	return nil
+}
+
 func cleanInput(text string) []string {
 	words := strings.Fields(text)
 
@@ -127,7 +155,14 @@ var commands = map[string]cliCommand{
 		description: "Explore a location area area",
 		callback:    commandExplore,
 	},
+	"catch": {
+		name:        "catch",
+		description: "Throw a Pokeball to catch a Pokemon",
+		callback:    commandCatch,
+	},
 }
+
+var pokedex = make(map[string]pokeapi.Pokemon)
 
 func main() {
 	cfg := &config{}
@@ -142,6 +177,7 @@ func main() {
 		if len(input) == 0 {
 			continue
 		}
+
 		commandName := input[0]
 		args := input[1:]
 
@@ -150,6 +186,7 @@ func main() {
 			fmt.Println("Unknown command")
 			continue
 		}
+
 		if err := command.callback(cfg, args); err != nil {
 			fmt.Println("Error", err)
 		}

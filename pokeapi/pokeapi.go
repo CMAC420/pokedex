@@ -110,5 +110,45 @@ func GetLocationAreaDetails(name string) (LocationAreaDetails, error) {
 	}
 
 	return details, nil
+}
 
+type Pokemon struct {
+	Name           string `json:"name"`
+	BaseExperience int    `json:"base_experience"`
+}
+
+func GetPokemon(name string) (Pokemon, error) {
+	url := baseURL + "/pokemon/" + name
+
+	if data, ok := cache.Get(url); ok {
+		var pokemon Pokemon
+		if err := json.Unmarshal(data, &pokemon); err != nil {
+			return Pokemon{}, err
+		}
+		return pokemon, nil
+	}
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return Pokemon{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return Pokemon{}, fmt.Errorf("Pokemon not found")
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return Pokemon{}, err
+	}
+
+	cache.Add(url, body)
+
+	var pokemon Pokemon
+	if err := json.Unmarshal(body, &pokemon); err != nil {
+		return Pokemon{}, err
+	}
+
+	return pokemon, nil
 }
