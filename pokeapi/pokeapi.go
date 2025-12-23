@@ -114,7 +114,22 @@ func GetLocationAreaDetails(name string) (LocationAreaDetails, error) {
 
 type Pokemon struct {
 	Name           string `json:"name"`
+	Height         int    `json:"height"`
+	Weight         int    `json:"weight"`
 	BaseExperience int    `json:"base_experience"`
+
+	Stats []struct {
+		BaseStat int `json:"base_stat"`
+		Stat     struct {
+			Name string `json:"name"`
+		} `json:"stat"`
+	} `json:"stats"`
+
+	Types []struct {
+		Type struct {
+			Name string `json:"name"`
+		} `json:"type"`
+	} `json:"types"`
 }
 
 func GetPokemon(name string) (Pokemon, error) {
